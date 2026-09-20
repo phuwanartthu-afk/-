@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดบันทึกครู | Teacher's Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Taviraj:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   DESIGN TOKENS — "สมุดบันทึกครู" (Teacher's Ledger)
+   ตัวเล่ม (sidebar) = ปกสมุดสีเขียวกระดานชอล์ก คงที่ทั้งสองธีม
+   เนื้อกระดาษ = ครีมอุ่น (light) / เขียวเข้มอมดำ (dark)
+   สีความหมาย: น้ำเงินหมึกปากกา = ทั่วไป/วิชา, เขียวชอล์ก = การสอน,
+   แดงปากกาตรวจงาน = การบ้าน, ทองปากกาไฮไลต์ = นักเรียน
+   ========================================================== */
+:root{
+  --paper-0:#FFFFFF;
+  --paper-50:#FAF7EF;
+  --paper-100:#F1EBDC;
+  --line:#E4DBC5;
+  --ink-900:#152018;
+  --ink-800:#1C2921;
+  --ink-700:#28362C;
+  --text-dark:#22281F;
+  --text-light:#6E7266;
+  --text-muted:#9A9C8E;
+
+  --blue:#3A6EA5;      --blue-ink:#2C557F;   --blue-soft:#E6EEF6;
+  --green:#3F8361;     --green-ink:#2F6249;  --green-soft:#E8F1EA;
+  --coral:#C8433F;     --coral-ink:#A7332F;  --coral-soft:#F7E7E4;
+  --gold:#B9821A;      --gold-ink:#8E6412;   --gold-soft:#F6EEDA;
+
+  --radius-sm:8px; --radius-md:12px; --radius-lg:20px;
+  --shadow-sm:0 1px 2px rgba(21,32,24,.08);
+  --shadow-md:0 10px 30px -8px rgba(21,32,24,.18);
+  --transition:all .22s cubic-bezier(.4,0,.2,1);
+  --sidebar-w:232px;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper-0:#212D25; --paper-50:#161F19; --paper-100:#1C2721;
+    --line:#334136; --text-dark:#EDEBDF; --text-light:#A9AF9E; --text-muted:#78806E;
+    --blue-soft:#25313E; --green-soft:#213229; --coral-soft:#332322; --gold-soft:#33291A;
+    --blue:#6FA3D8; --green:#5FB587; --coral:#E28581; --gold:#E3B04E;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35); --shadow-md:0 12px 30px -8px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --paper-0:#212D25; --paper-50:#161F19; --paper-100:#1C2721;
+  --line:#334136; --text-dark:#EDEBDF; --text-light:#A9AF9E; --text-muted:#78806E;
+  --blue-soft:#25313E; --green-soft:#213229; --coral-soft:#332322; --gold-soft:#33291A;
+  --blue:#6FA3D8; --green:#5FB587; --coral:#E28581; --gold:#E3B04E;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35); --shadow-md:0 12px 30px -8px rgba(0,0,0,.55);
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-padding-top: env(safe-area-inset-top,0px); }
+body{
+  font-family:'Sarabun',sans-serif;
+  background:var(--paper-50);
+  color:var(--text-dark);
+  line-height:1.6;
+  min-height:100%;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  transition:background .3s ease, color .3s ease;
+}
+h1,h2,h3,h4{ font-family:'Taviraj',serif; font-weight:600; letter-spacing:.2px; }
+button, input, select, textarea{ font-family:inherit; }
+::selection{ background:var(--gold-soft); }
+
+/* ---------- Layout shell ---------- */
+.app-shell{ display:flex; min-height:100vh; }
+
+/* ---------- Sidebar (ปกสมุด) ---------- */
+.sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:var(--ink-900);
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.03), transparent 120px),
+    repeating-linear-gradient(180deg, rgba(255,255,255,.015) 0 1px, transparent 1px 34px);
+  color:#EFEBDD;
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+  padding:22px 0;
+  z-index:200;
+}
+.brand{
+  display:flex; align-items:center; gap:12px;
+  padding:0 20px 20px;
+  border-bottom:1px solid rgba(239,235,221,.12);
+  margin-bottom:14px;
+}
+.brand-mark{
+  width:42px; height:42px; border-radius:10px;
+  background:linear-gradient(145deg, var(--gold), var(--coral));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; flex-shrink:0;
+  box-shadow:0 4px 10px rgba(0,0,0,.35);
+}
+.brand-text .t1{ font-family:'Taviraj',serif; font-weight:700; font-size:1.08rem; line-height:1.15; color:#fff; }
+.brand-text .t2{ font-size:.72rem; color:#B9C0AE; letter-spacing:.3px; }
+
+.side-nav{ display:flex; flex-direction:column; gap:2px; padding:0 12px; flex:1; }
+.side-btn{
+  display:flex; align-items:center; gap:12px;
+  background:none; border:none; text-align:left;
+  color:#C7CDBB; font-size:.98rem; font-weight:500;
+  padding:12px 12px; border-radius:10px; cursor:pointer;
+  border-left:3px solid transparent;
+  transition:var(--transition);
+  position:relative;
+}
+.side-btn .ico{ font-size:1.15rem; width:22px; text-align:center; }
+.side-btn:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.side-btn.active{ background:rgba(255,255,255,.09); color:#fff; }
+.side-btn.active::before{
+  content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:3px;
+  background:var(--tab-color, var(--gold));
+}
+.side-btn[data-tab="dashboard"]{ --tab-color:var(--blue); }
+.side-btn[data-tab="courses"]{ --tab-color:var(--green); }
+.side-btn[data-tab="students"]{ --tab-color:var(--gold); }
+.side-btn[data-tab="settings"]{ --tab-color:#B9C0AE; }
+.side-badge{
+  margin-left:auto; background:var(--coral); color:#fff; font-size:.68rem; font-weight:700;
+  padding:2px 7px; border-radius:20px; min-width:18px; text-align:center;
+}
+
+.side-foot{ padding:14px 12px 4px; border-top:1px solid rgba(239,235,221,.12); margin-top:10px; }
+.theme-toggle{
+  width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); color:#EFEBDD;
+  padding:9px; border-radius:10px; cursor:pointer; font-size:.85rem; font-weight:600;
+  transition:var(--transition);
+}
+.theme-toggle:hover{ background:rgba(255,255,255,.14); }
+
+/* ---------- Main column ---------- */
+.main-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 28px; background:var(--paper-0); border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:90;
+}
+.topbar-date{ font-size:.88rem; color:var(--text-light); }
+.topbar-date strong{ color:var(--text-dark); }
+.topbar-search{
+  display:flex; align-items:center; gap:8px; background:var(--paper-100);
+  border:1px solid var(--line); border-radius:10px; padding:8px 14px; width:280px; max-width:45vw;
+}
+.topbar-search input{ border:none; background:none; outline:none; width:100%; font-size:.9rem; color:var(--text-dark); }
+
+main{ max-width:1180px; width:100%; margin:0 auto; padding:26px 28px 90px; flex:1; }
+
+.page{ display:none; animation:fadeIn .35s ease; }
+.page.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+.page-header{ margin-bottom:24px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.page-header h1{ font-size:1.7rem; color:var(--text-dark); }
+.page-header p{ color:var(--text-light); margin-top:4px; font-size:.98rem; }
+
+/* ---------- Ledger cards ---------- */
+.card{
+  background:var(--paper-0);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:24px;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:22px;
+}
+.card-head{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.card-head .tab{ width:6px; height:22px; border-radius:4px; background:var(--accent, var(--blue)); }
+.card-head h3{ font-size:1.15rem; color:var(--text-dark); font-weight:600; }
+.card-head .accent-blue{ --accent:var(--blue); } /* placeholder */
+.card.c-blue .tab{ background:var(--blue); }
+.card.c-green .tab{ background:var(--green); }
+.card.c-coral .tab{ background:var(--coral); }
+.card.c-gold .tab{ background:var(--gold); }
+
+/* ---------- Dashboard hero strip ---------- */
+.hero-strip{
+  background:var(--ink-900);
+  color:#F3EFE2;
+  border-radius:var(--radius-lg);
+  padding:26px 28px;
+  margin-bottom:24px;
+  display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.02) 0 1px, transparent 1px 30px);
+}
+.hero-strip h1{ color:#fff; font-size:1.6rem; }
+.hero-strip p{ color:#C7CDBB; margin-top:6px; font-size:.95rem; }
+.hero-date{ text-align:right; }
+.hero-date .d1{ font-family:'Taviraj',serif; font-size:1.6rem; font-weight:600; color:var(--gold); }
+.hero-date .d2{ font-size:.8rem; color:#B9C0AE; }
+
+/* ---------- Ledger stat row ---------- */
+.stat-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:24px; }
+.stat-card{
+  background:var(--paper-0); border:1px solid var(--line); border-radius:var(--radius-md);
+  padding:18px 20px; display:flex; align-items:center; gap:14px; position:relative; overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
+.stat-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--accent); }
+.stat-card .si{ font-size:1.5rem; width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--accent-soft); flex-shrink:0; }
+.stat-card .sv{ font-size:1.9rem; font-weight:700; font-family:'Taviraj',serif; line-height:1; color:var(--text-dark); }
+.stat-card .sl{ font-size:.82rem; color:var(--text-light); margin-top:2px; }
+.stat-card.blue{ --accent:var(--blue); --accent-soft:var(--blue-soft); }
+.stat-card.green{ --accent:var(--green); --accent-soft:var(--green-soft); }
+.stat-card.coral{ --accent:var(--coral); --accent-soft:var(--coral-soft); }
+.stat-card.gold{ --accent:var(--gold); --accent-soft:var(--gold-soft); }
+
+.dash-grid{ display:grid; grid-template-columns:1.15fr .85fr; gap:22px; align-items:start; }
+@media (max-width:900px){ .dash-grid{ grid-template-columns:1fr; } }
+
+.deadline-item{
+  display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line);
+}
+.deadline-item:last-child{ border-bottom:none; }
+.deadline-badge{ font-family:'Taviraj',serif; font-weight:700; font-size:.95rem; color:#fff; background:var(--coral); border-radius:8px; padding:6px 10px; text-align:center; min-width:52px; }
+.deadline-badge.ok{ background:var(--green); }
+.deadline-badge.soon{ background:var(--gold); }
+.deadline-main .t{ font-weight:600; font-size:.95rem; }
+.deadline-main .s{ font-size:.8rem; color:var(--text-light); }
+
+.progress-mini-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.progress-mini-row:last-child{ margin-bottom:0; }
+.progress-mini-label{ width:120px; flex-shrink:0; font-size:.85rem; font-weight:600; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.progress-mini-track{ flex:1; height:10px; background:var(--paper-100); border-radius:20px; overflow:hidden; }
+.progress-mini-fill{ height:100%; background:var(--green); border-radius:20px; transition:width .5s ease; }
+.progress-mini-pct{ width:38px; text-align:right; font-size:.8rem; color:var(--text-light); font-weight:600; }
+
+.empty-note{ text-align:center; color:var(--text-muted); padding:26px 10px; font-size:.92rem; }
+
+/* ---------- Forms ---------- */
+.form-group{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.form-control{
+  flex:1; min-width:190px; padding:11px 15px; border:1.5px solid var(--line); border-radius:10px;
+  font-size:.95rem; outline:none; background:var(--paper-50); color:var(--text-dark); transition:var(--transition);
+}
+.form-control:focus{ border-color:var(--blue); background:var(--paper-0); box-shadow:0 0 0 4px var(--blue-soft); }
+textarea.form-control{ resize:vertical; min-height:76px; width:100%; }
+select.form-control{ cursor:pointer; }
+
+.btn{
+  border:none; padding:11px 22px; border-radius:10px; cursor:pointer; font-size:.95rem; font-weight:600;
+  transition:var(--transition); white-space:nowrap; color:#fff; display:inline-flex; align-items:center; gap:6px;
+}
+.btn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); }
+.btn-blue{ background:var(--blue); } .btn-green{ background:var(--green); }
+.btn-coral{ background:var(--coral); } .btn-gold{ background:var(--gold); }
+.btn-ghost{ background:var(--paper-100); color:var(--text-dark); border:1px solid var(--line); }
+.btn-ghost:hover{ background:var(--paper-50); }
+.btn-danger-outline{ background:var(--coral-soft); color:var(--coral-ink); border:1px solid var(--coral); }
+.btn-sm{ padding:7px 14px; font-size:.85rem; border-radius:8px; }
+.btn-update-mode{ background:var(--gold) !important; }
+
+.action-group{ display:flex; gap:7px; flex-wrap:wrap; }
+.btn-icon{ border:none; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:.85rem; color:#fff; transition:var(--transition); display:inline-flex; align-items:center; justify-content:center; }
+.btn-icon.edit{ background:var(--gold); } .btn-icon.edit:hover{ background:var(--gold-ink); }
+.btn-icon.del{ background:var(--coral); } .btn-icon.del:hover{ background:var(--coral-ink); }
+.btn-icon.view{ background:var(--blue); } .btn-icon.view:hover{ background:var(--blue-ink); }
+
+/* ---------- Tables ---------- */
+.table-responsive{ overflow-x:auto; border-radius:12px; }
+.data-table{ width:100%; border-collapse:collapse; margin-top:8px; min-width:520px; }
+.data-table th, .data-table td{ padding:13px 16px; text-align:left; border-bottom:1px solid var(--line); font-size:.92rem; }
+.data-table th{ background:var(--paper-100); color:var(--text-dark); font-weight:700; white-space:nowrap; font-size:.82rem; letter-spacing:.2px; }
+.data-table tbody tr{ transition:var(--transition); }
+.data-table tbody tr:hover{ background:var(--paper-50); }
+.active-row{ background:var(--gold-soft) !important; box-shadow:inset 4px 0 0 var(--gold); }
+
+/* ---------- Lesson log ---------- */
+.lesson-group{ background:var(--paper-50); border-radius:14px; padding:20px; margin-bottom:18px; border-left:5px solid var(--green); }
+.lesson-group h4{ color:var(--green-ink); margin-bottom:12px; font-size:1.1rem; }
+.lesson-item{ background:var(--paper-0); padding:16px; border-radius:10px; margin-bottom:10px; border:1px solid var(--line); position:relative; }
+.lesson-item:last-child{ margin-bottom:0; }
+.lesson-date{ font-weight:700; color:var(--blue); font-size:.88rem; margin-bottom:6px; }
+.lesson-summary{ color:var(--text-dark); margin-bottom:8px; font-size:.94rem; }
+.btn-delete-lesson{ position:absolute; top:12px; right:12px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.05rem; transition:var(--transition); }
+.btn-delete-lesson:hover{ color:var(--coral); transform:scale(1.1); }
+
+.progress-container{ background:var(--paper-100); border-radius:20px; height:20px; width:100%; margin-bottom:16px; overflow:hidden; }
+.progress-bar{ background:var(--green); height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.75rem; font-weight:700; transition:width .6s ease; min-width:8%; }
+.topic-check-container{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; margin-top:4px; }
+.topic-check-container input[type="checkbox"]{ cursor:pointer; width:18px; height:18px; accent-color:var(--green); }
+.lesson-topic-badge{ display:inline-block; background:var(--paper-100); color:var(--text-dark); padding:4px 12px; border-radius:20px; font-size:.85rem; font-weight:500; transition:var(--transition); }
+.topic-completed .lesson-topic-badge{ background:var(--green-soft); color:var(--green-ink); text-decoration:line-through; opacity:.8; }
+
+/* ---------- Status badges ---------- */
+.status-badge{ padding:5px 13px; border-radius:20px; font-size:.8rem; font-weight:700; display:inline-block; }
+.status-pending{ background:var(--gold-soft); color:var(--gold-ink); }
+.status-completed{ background:var(--green-soft); color:var(--green-ink); }
+.status-overdue{ background:var(--coral-soft); color:var(--coral-ink); }
+
+.btn-status{ padding:7px 14px; border:none; border-radius:8px; cursor:pointer; font-size:.85rem; font-weight:600; transition:var(--transition); white-space:nowrap; color:#fff; }
+.btn-status.done{ background:var(--green); } .btn-status.done:hover{ background:var(--green-ink); }
+.btn-status.undo{ background:var(--paper-100); color:var(--text-light); } .btn-status.undo:hover{ background:var(--line); }
+
+.filter-container{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+.filter-container .filters{ display:flex; gap:10px; flex-wrap:wrap; }
+
+/* ---------- Toast ---------- */
+#toastStack{ position:fixed; bottom:24px; right:24px; z-index:1000; display:flex; flex-direction:column; gap:10px; }
+@supports (bottom: env(safe-area-inset-bottom)){ #toastStack{ bottom:calc(24px + env(safe-area-inset-bottom)); } }
+.toast{
+  background:var(--ink-900); color:#F3EFE2; padding:13px 18px; border-radius:10px; box-shadow:var(--shadow-md);
+  font-size:.9rem; display:flex; align-items:center; gap:10px; min-width:230px; max-width:340px;
+  animation:toastIn .25s ease; border-left:4px solid var(--green);
+}
+.toast.err{ border-left-color:var(--coral); }
+.toast.warn{ border-left-color:var(--gold); }
+@keyframes toastIn{ from{opacity:0; transform:translateX(30px);} to{opacity:1; transform:translateX(0);} }
+
+/* ---------- Confirm modal ---------- */
+.modal-overlay{ position:fixed; inset:0; background:rgba(21,32,24,.55); display:none; align-items:center; justify-content:center; z-index:999; padding:20px; }
+.modal-overlay.show{ display:flex; }
+.modal-box{ background:var(--paper-0); border-radius:16px; padding:26px; max-width:400px; width:100%; box-shadow:var(--shadow-md); animation:fadeIn .2s ease; }
+.modal-box h4{ font-size:1.15rem; margin-bottom:10px; color:var(--text-dark); }
+.modal-box p{ color:var(--text-light); font-size:.92rem; margin-bottom:20px; white-space:pre-line; }
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
+/* ---------- Settings ---------- */
+.settings-item{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 0; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.settings-item:last-child{ border-bottom:none; }
+.settings-item .si-title{ font-weight:600; font-size:.98rem; }
+.settings-item .si-desc{ font-size:.85rem; color:var(--text-light); margin-top:2px; max-width:420px; }
+
+/* ---------- Profile note ---------- */
+.profile-banner{ margin-bottom:16px; background:var(--gold-soft); padding:14px 18px; border-radius:12px; border-left:4px solid var(--gold); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.profile-ring-wrap{ display:flex; align-items:center; gap:14px; }
+.ring{ width:52px; height:52px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; font-family:'Taviraj',serif; color:var(--text-dark); background:conic-gradient(var(--green) calc(var(--pct,0)*1%), var(--paper-100) 0); }
+.ring::after{ content:''; }
+.ring span{ background:var(--paper-0); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+
+/* ---------- Mobile / bottom nav ---------- */
+@media (max-width:880px){
+  .app-shell{ flex-direction:column; }
+  .sidebar{
+    position:fixed; top:auto; bottom:0; left:0; right:0; width:100%; height:auto;
+    flex-direction:row; align-items:center; padding:8px 6px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    background-image:none;
+  }
+  .brand, .side-foot{ display:none; }
+  .side-nav{ flex-direction:row; flex:1; overflow-x:auto; padding:0 4px; gap:2px; }
+  .side-btn{ flex-direction:column; gap:3px; font-size:.68rem; padding:8px 10px; border-left:none; border-radius:10px; text-align:center; min-width:64px; }
+  .side-btn .ico{ font-size:1.25rem; width:auto; }
+  .side-btn.active::before{ left:8px; right:8px; top:auto; bottom:2px; height:3px; width:auto; }
+  main{ padding:18px 16px 100px; }
+  .topbar{ padding:12px 16px; }
+  .topbar-search{ width:150px; }
+  .hero-strip{ flex-direction:column; align-items:flex-start; }
+  .hero-date{ text-align:left; }
+}
+
+/* ---------- Print ---------- */
+@media print{
+  .sidebar, .topbar, .form-group, .filter-container, .quick-links, .btn, .btn-icon, .btn-status, #toastStack, .no-print{ display:none !important; }
+  body{ background:#fff; }
+  main{ max-width:100%; padding:0; }
+  .card{ box-shadow:none; border:1px solid #ccc; break-inside:avoid; }
+  .page{ display:block !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- ============ SIDEBAR (ปกสมุด) ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">📔</div>
+      <div class="brand-text">
+        <div class="t1">สมุดบันทึกครู</div>
+        <div class="t2">Teacher's Ledger</div>
+      </div>
+    </div>
+    <nav class="side-nav">
+      <button class="side-btn active" data-tab="dashboard" onclick="switchPage('dashboard', this)">
+        <span class="ico">📊</span><span>ภาพรวม</span>
+      </button>
+      <button class="side-btn" data-tab="courses" onclick="switchPage('courses', this)">
+        <span class="ico">📚</span><span>วิชาและการสอน</span>
+      </button>
+      <button class="side-btn" data-tab="students" onclick="switchPage('students', this)">
+        <span class="ico">👨‍🎓</span><span>ติดตามนักเรียน</span>
+      </button>
+      <button class="side-btn" data-tab="settings" onclick="switchPage('settings', this)">
+        <span class="ico">⚙️</span><span>ตั้งค่า/สำรองข้อมูล</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeToggleBtn">
+        <span id="themeIcon">🌙</span><span id="themeLabel">โหมดกลางคืน</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div class="main-col">
+    <div class="topbar">
+      <div class="topbar-date">วันนี้: <strong id="topbarDate">-</strong></div>
+      <div class="topbar-search">
+        <span>🔎</span>
+        <input type="text" id="globalSearch" placeholder="ค้นหาวิชา / นักเรียน / งาน..." oninput="handleGlobalSearch()">
+      </div>
+    </div>
+
+    <main>
+      <!-- ============================================== -->
+      <!-- 1. หน้าภาพรวม (Dashboard) -->
+      <!-- ============================================== -->
+      <section id="dashboard" class="page active">
+        <div class="hero-strip">
+          <div>
+            <h1>👋 สวัสดีคุณครู</h1>
+            <p>นี่คือสรุปภาพรวมงานสอนและงานที่ต้องติดตามในวันนี้</p>
+          </div>
+          <div class="hero-date">
+            <div class="d1" id="heroDateMain">-</div>
+            <div class="d2" id="heroDateSub">-</div>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card blue">
+            <div class="si">📚</div>
+            <div><div class="sv" id="dashTotalCourses">0</div><div class="sl">รายวิชาที่สอน</div></div>
+          </div>
+          <div class="stat-card gold">
+            <div class="si">📝</div>
+            <div><div class="sv" id="dashPendingHW">0</div><div class="sl">การบ้านค้างตรวจ</div></div>
+          </div>
+          <div class="stat-card coral">
+            <div class="si">⏰</div>
+            <div><div class="sv" id="dashOverdueHW">0</div><div class="sl">เลยกำหนดส่งแล้ว</div></div>
+          </div>
+          <div class="stat-card green">
+            <div class="si">👨‍🎓</div>
+            <div><div class="sv" id="dashTotalStudents">0</div><div class="sl">นักเรียนในความดูแล</div></div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card c-coral">
+            <div class="card-head"><span class="tab"></span><h3>⏳ กำหนดส่งที่ใกล้ถึง (14 วันข้างหน้า)</h3></div>
+            <div id="upcomingDeadlines"><div class="empty-note">ยังไม่มีงานที่ใกล้ถึงกำหนดส่ง</div></div>
+          </div>
+          <div class="card c-green">
+            <div class="card-head"><span class="tab"></span><h3>📈 ความคืบหน้าการสอนรายวิชา</h3></div>
+            <div id="courseProgressOverview"><div class="empty-note">ยังไม่มีข้อมูลความคืบหน้า</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="tab" style="background:var(--gold);"></span><h3>🚀 ทางลัด</h3></div>
+          <div class="quick-links" style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-blue" onclick="switchPage('courses', document.querySelector('[data-tab=courses]'))">➕ เพิ่มวิชาสอนใหม่</button>
+            <button class="btn btn-coral" onclick="switchPage('courses', document.querySelector('[data-tab=courses]')); setTimeout(()=>document.getElementById('homeworkTopic').focus(),150)">📢 สั่งการบ้าน/ชิ้นงาน</button>
+            <button class="btn btn-gold" onclick="switchPage('students', document.querySelector('[data-tab=students]'))">📂 ดูแฟ้มประวัตินักเรียน</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 2. หน้าวิชาและการเรียน -->
+      <!-- ============================================== -->
+      <section id="courses" class="page">
+        <div class="page-header">
+          <div><h1>📚 การจัดการรายวิชาและการเรียน</h1><p>บันทึกข้อมูลวิชา เนื้อหาการสอนในแต่ละคาบ และมอบหมายงาน</p></div>
+        </div>
+
+        <div class="card c-blue">
+          <div class="card-head"><span class="tab"></span><h3>📖 เพิ่ม/แก้ไข ข้อมูลรายวิชา</h3></div>
+          <div class="form-group">
+            <input type="text" id="courseName" class="form-control" placeholder="ชื่อวิชา (เช่น คณิตศาสตร์พื้นฐาน)">
+            <input type="text" id="teacherName" class="form-control" placeholder="ชื่อครูผู้สอน">
+            <input type="text" id="teacherContact" class="form-control" placeholder="ช่องทางติดต่อ (เช่น Line ID)">
+            <button id="btnSaveCourse" class="btn btn-blue" onclick="saveCourse()">💾 บันทึกวิชา</button>
+            <button id="btnCancelEditCourse" class="btn btn-ghost" style="display:none;" onclick="cancelEditCourse()">✖ ยกเลิก</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>ชื่อวิชา</th><th>ครูผู้สอน</th><th>ติดต่อ</th><th>คาบที่สอน</th><th>งานที่สั่ง</th><th>จัดการ</th></tr></thead>
+              <tbody id="courseTableBody"><tr><td colspan="6" style="text-align:center;color:var(--text-light);">ยังไม่มีข้อมูลรายวิชา</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card c-green">
+          <div class="card-head"><span class="tab"></span><h3>📝 บันทึกการสอนแต่ละคาบ (Lesson Log)</h3></div>
+          <div class="form-group">
+            <select id="lessonCourse" class="form-control"><option value="">-- เลือกรหัส/ชื่อวิชา --</option></select>
+            <input type="date" id="lessonDate" class="form-control">
+          </div>
+          <div class="form-group"><textarea id="lessonSummary" class="form-control" placeholder="สรุปเนื้อหาที่สอนในคาบนี้..."></textarea></div>
+          <div class="form-group"><input type="text" id="lessonTopic" class="form-control" style="width:100%;" placeholder="หัวข้อย่อยที่เรียน (เช่น บทที่ 1, แบบฝึกหัด 1.1) ไว้สำหรับทำ Progress"></div>
+          <button class="btn btn-green" onclick="addLesson()">📌 บันทึกคาบเรียน</button>
+        </div>
+
+        <div class="card c-green">
+          <div class="card-head"><span class="tab"></span><h3>📈 ประวัติการสอน &amp; ความคืบหน้า</h3></div>
+          <div id="lessonHistoryContainer"><div class="empty-note">ยังไม่มีบันทึกการสอน</div></div>
+        </div>
+
+        <div class="card c-coral">
+          <div class="card-head"><span class="tab"></span><h3>📢 มอบหมายการบ้าน / ชิ้นงาน</h3></div>
+          <div class="form-group">
+            <select id="homeworkCourse" class="form-control"><option value="">-- เลือกรหัส/ชื่อวิชา --</option></select>
+            <input type="text" id="homeworkTopic" class="form-control" placeholder="หัวข้อการบ้าน / งานที่สั่ง">
+            <input type="date" id="homeworkDueDate" class="form-control" title="กำหนดส่ง">
+            <button id="btnSaveHomework" class="btn btn-coral" onclick="saveHomework()">🚀 สั่งงาน</button>
+            <button id="btnCancelEditHomework" class="btn btn-ghost" style="display:none;" onclick="cancelEditHomework()">✖ ยกเลิก</button>
+          </div>
+
+          <div class="filter-container" style="margin-top:26px;">
+            <h3 style="color:var(--coral-ink); margin:0; font-size:1.05rem;">📋 รายการการบ้านทั้งหมด</h3>
+            <div class="filters">
+              <input type="text" id="homeworkSearch" class="form-control" style="min-width:160px;" placeholder="ค้นหาหัวข้องาน..." oninput="renderHomeworks()">
+              <select id="filterCourse" class="form-control" style="width:auto; min-width:170px;" onchange="renderHomeworks()"><option value="all">-- ดูทุกวิชา --</option></select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>วิชา</th><th>หัวข้องาน</th><th>กำหนดส่ง</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+              <tbody id="homeworkTableBody"><tr><td colspan="5" style="text-align:center;color:var(--text-light);">ยังไม่มีข้อมูลการสั่งงาน</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 3. หน้าติดตามนักเรียน -->
+      <!-- ============================================== -->
+      <section id="students" class="page">
+        <div class="page-header">
+          <div><h1>👨‍🎓 การติดตามผู้เรียน</h1><p>จัดการรายชื่อนักเรียนและติดตามการส่งงานเป็นรายบุคคล</p></div>
+        </div>
+
+        <div class="card c-gold">
+          <div class="card-head"><span class="tab"></span><h3>👤 เพิ่ม/แก้ไข ข้อมูลนักเรียน</h3></div>
+          <div class="form-group">
+            <input type="text" id="studentCode" class="form-control" placeholder="รหัสนักเรียน (เช่น 66001)">
+            <input type="text" id="studentName" class="form-control" placeholder="ชื่อ-นามสกุล">
+            <button id="btnSaveStudent" class="btn btn-gold" onclick="saveStudent()">💾 บันทึกนักเรียน</button>
+            <button id="btnCancelEditStudent" class="btn btn-ghost" style="display:none;" onclick="cancelEditStudent()">✖ ยกเลิก</button>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card c-gold">
+            <div class="card-head"><span class="tab"></span><h3>👥 รายชื่อนักเรียน</h3></div>
+            <input type="text" id="studentSearch" class="form-control" placeholder="ค้นหาชื่อ/รหัสนักเรียน..." style="margin-bottom:14px;" oninput="renderStudents()">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ความคืบหน้า</th><th>จัดการ</th></tr></thead>
+                <tbody id="studentTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-light);">ยังไม่มีรายชื่อ</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card c-gold">
+            <div class="card-head"><span class="tab"></span><h3>📂 แฟ้มประวัติการส่งงาน</h3></div>
+            <div class="profile-banner">
+              <div class="profile-ring-wrap">
+                <div class="ring" id="profileRing" style="--pct:0;"><span id="profileRingPct">0%</span></div>
+                <div>
+                  <div style="font-size:.8rem; color:var(--text-light);">นักเรียนที่เลือก</div>
+                  <div id="profileStudentName" style="font-weight:700; font-family:'Taviraj',serif;">กรุณาเลือกนักเรียนจากตารางซ้ายมือ</div>
+                </div>
+              </div>
+              <div class="action-group no-print">
+                <button class="btn btn-ghost btn-sm" onclick="copyStudentSummary()">📋 คัดลอกสรุป</button>
+                <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ พิมพ์</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead><tr><th>วิชา</th><th>งานที่ได้รับ</th><th>สถานะ</th><th>อัปเดต</th></tr></thead>
+                <tbody id="studentHomeworkTableBody"><tr><td colspan="4" style="text-align:center;color:var(--text-light);">เลือกรายชื่อเพื่อดูประวัติ</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 4. หน้าตั้งค่า / สำรองข้อมูล -->
+      <!-- ============================================== -->
+      <section id="settings" class="page">
+        <div class="page-header">
+          <div><h1>⚙️ ตั้งค่าและสำรองข้อมูล</h1><p>ข้อมูลทั้งหมดถูกเก็บไว้ในเบราว์เซอร์นี้เท่านั้น แนะนำให้สำรองข้อมูลเป็นระยะ</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="tab" style="background:var(--blue);"></span><h3>🎨 การแสดงผล</h3></div>
+          <div class="settings-item">
+            <div><div class="si-title">โหมดมืด / โหมดสว่าง</div><div class="si-desc">สลับธีมให้เหมาะกับสภาพแสงหรือความชอบส่วนตัว การตั้งค่าจะถูกจดจำไว้</div></div>
+            <button class="btn btn-ghost" onclick="toggleTheme()">🌓 สลับธีม</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="tab" style="background:var(--green);"></span><h3>💾 สำรอง / กู้คืนข้อมูล</h3></div>
+          <div class="settings-item">
+            <div><div class="si-title">ดาวน์โหลดไฟล์สำรองข้อมูล</div><div class="si-desc">บันทึกข้อมูลวิชา การสอน การบ้าน และนักเรียนทั้งหมดเป็นไฟล์ .json เก็บไว้</div></div>
+            <button class="btn btn-green" onclick="exportBackup()">⬇️ สำรองข้อมูล</button>
+          </div>
+          <div class="settings-item">
+            <div><div class="si-title">นำเข้าไฟล์สำรองข้อมูล</div><div class="si-desc">กู้คืนข้อมูลจากไฟล์ .json ที่เคยสำรองไว้ (ข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด)</div></div>
+            <div>
+              <input type="file" id="importFileInput" accept="application/json" style="display:none;" onchange="importBackup(this.files[0])">
+              <button class="btn btn-ghost" onclick="document.getElementById('importFileInput').click()">⬆️ นำเข้าไฟล์</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="tab" style="background:var(--coral);"></span><h3>⚠️ โซนอันตราย</h3></div>
+          <div class="settings-item">
+            <div><div class="si-title">ล้างข้อมูลทั้งหมด</div><div class="si-desc">ลบวิชา การสอน การบ้าน และนักเรียนทั้งหมดออกจากเบราว์เซอร์นี้อย่างถาวร</div></div>
+            <button class="btn btn-danger-outline" onclick="confirmClearAll()">🗑 ล้างข้อมูลทั้งหมด</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Toast stack -->
+<div id="toastStack"></div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-box">
+    <h4 id="confirmTitle">ยืนยันการทำรายการ</h4>
+    <p id="confirmMessage">คุณแน่ใจหรือไม่?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn btn-coral" id="confirmOkBtn">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   0. Theme
+   ========================================================== */
+function applyTheme(theme){
+  if(theme === 'dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('themeIcon').textContent = '☀️';
+    document.getElementById('themeLabel').textContent = 'โหมดกลางวัน';
+  } else {
+    document.documentElement.setAttribute('data-theme','light');
+    document.getElementById('themeIcon').textContent = '🌙';
+    document.getElementById('themeLabel').textContent = 'โหมดกลางคืน';
+  }
+}
+function toggleTheme(){
+  const current = localStorage.getItem('stn_theme') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('stn_theme', next);
+  applyTheme(next);
+}
+(function initTheme(){
+  const saved = localStorage.getItem('stn_theme');
+  const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
+})();
+
+/* ==========================================================
+   1. Toast & Confirm helpers
+   ========================================================== */
+function toast(message, type){
+  type = type || 'ok';
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'err' ? ' err' : type === 'warn' ? ' warn' : '');
+  const icon = type === 'err' ? '⚠️' : type === 'warn' ? '⏰' : '✅';
+  el.innerHTML = '<span>' + icon + '</span><span>' + message + '</span>';
+  document.getElementById('toastStack').appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s ease'; el.style.opacity = '0'; setTimeout(()=>el.remove(), 300); }, 3200);
+}
+let _confirmCallback = null;
+function showConfirm(message, onOk, title){
+  document.getElementById('confirmTitle').textContent = title || 'ยืนยันการทำรายการ';
+  document.getElementById('confirmMessage').textContent = message;
+  document.getElementById('confirmOverlay').classList.add('show');
+  _confirmCallback = onOk;
+}
+function closeConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('show');
+  _confirmCallback = null;
+}
+document.getElementById('confirmOkBtn').addEventListener('click', () => {
+  const cb = _confirmCallback;
+  closeConfirm();
+  if(cb) cb();
+});
+document.getElementById('confirmOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'confirmOverlay') closeConfirm();
+});
+
+/* ==========================================================
+   2. Navigation
+   ========================================================== */
+function switchPage(pageId, btnElement){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  if(btnElement) btnElement.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ==========================================================
+   3. Data & state
+   ========================================================== */
+let courses = [];
+let lessons = [];
+let homeworks = [];
+let students = [];
+let studentSubmissions = {};
+
+let currentViewStudentId = null;
+let editingCourseId = null;
+let editingHomeworkId = null;
+let editingStudentId = null;
+
+function saveData(){
+  localStorage.setItem('stn_courses', JSON.stringify(courses));
+  localStorage.setItem('stn_lessons', JSON.stringify(lessons));
+  localStorage.setItem('stn_homeworks', JSON.stringify(homeworks));
+  localStorage.setItem('stn_students', JSON.stringify(students));
+  localStorage.setItem('stn_submissions', JSON.stringify(studentSubmissions));
+  updateDashboard();
+}
+
+function loadData(){
+  try{
+    const c = localStorage.getItem('stn_courses'); if(c) courses = JSON.parse(c);
+    const l = localStorage.getItem('stn_lessons'); if(l) lessons = JSON.parse(l);
+    const h = localStorage.getItem('stn_homeworks'); if(h) homeworks = JSON.parse(h);
+    const s = localStorage.getItem('stn_students'); if(s) students = JSON.parse(s);
+    const sub = localStorage.getItem('stn_submissions'); if(sub) studentSubmissions = JSON.parse(sub);
+  }catch(e){ console.error('โหลดข้อมูลผิดพลาด', e); }
+  renderAll();
+}
+
+function renderAll(){
+  renderCourses();
+  updateAllCourseDropdowns();
+  renderLessons();
+  renderHomeworks();
+  renderStudents();
+  if(currentViewStudentId) renderStudentProfile(currentViewStudentId);
+  updateDashboard();
+  renderDashboardExtras();
+  updateTopbarDate();
+}
+
+window.onload = loadData;
+
+function formatDate(dateString){
+  if(!dateString) return '-';
+  return new Date(dateString + 'T00:00:00').toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+}
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function daysUntil(dateString){
+  const today = new Date(todayStr() + 'T00:00:00');
+  const target = new Date(dateString + 'T00:00:00');
+  return Math.round((target - today) / (1000*60*60*24));
+}
+
+function updateTopbarDate(){
+  const now = new Date();
+  const full = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('topbarDate').textContent = full;
+  document.getElementById('heroDateMain').textContent = now.toLocaleDateString('th-TH', { day:'numeric', month:'long' });
+  document.getElementById('heroDateSub').textContent = now.toLocaleDateString('th-TH', { weekday:'long', year:'numeric' });
+}
+
+/* ==========================================================
+   4. Dashboard
+   ========================================================== */
+function updateDashboard(){
+  document.getElementById('dashTotalCourses').innerText = courses.length;
+  document.getElementById('dashPendingHW').innerText = homeworks.filter(hw => hw.status === 'pending').length;
+  document.getElementById('dashOverdueHW').innerText = homeworks.filter(hw => hw.status === 'pending' && daysUntil(hw.dueDate) < 0).length;
+  document.getElementById('dashTotalStudents').innerText = students.length;
+}
+
+function renderDashboardExtras(){
+  // อัปเดตป้ายเลยกำหนดที่แถบเมนู
+  const overdue = homeworks.filter(hw => hw.status === 'pending' && daysUntil(hw.dueDate) < 0).length;
+  let badge = document.querySelector('.side-btn[data-tab="courses"] .side-badge');
+  if(overdue > 0){
+    if(!badge){
+      badge = document.createElement('span');
+      badge.className = 'side-badge';
+      document.querySelector('.side-btn[data-tab="courses"]').appendChild(badge);
+    }
+    badge.textContent = overdue;
+  } else if(badge){ badge.remove(); }
+
+  // กำหนดส่งที่ใกล้ถึง (14 วัน)
+  const upcoming = homeworks
+    .filter(hw => hw.status === 'pending')
+    .map(hw => ({ ...hw, d: daysUntil(hw.dueDate) }))
+    .filter(hw => hw.d <= 14)
+    .sort((a,b) => a.d - b.d)
+    .slice(0, 6);
+
+  const box = document.getElementById('upcomingDeadlines');
+  if(upcoming.length === 0){
+    box.innerHTML = '<div class="empty-note">ไม่มีงานที่ใกล้ถึงกำหนดส่งใน 14 วันนี้ 🎉</div>';
+  } else {
+    box.innerHTML = upcoming.map(hw => {
+      const course = courses.find(c => c.id === hw.courseId);
+      let badgeClass = 'ok', label = hw.d + ' วัน';
+      if(hw.d < 0){ badgeClass=''; label = 'เลย ' + Math.abs(hw.d) + ' วัน'; }
+      else if(hw.d === 0){ badgeClass='soon'; label = 'วันนี้'; }
+      else if(hw.d <= 3){ badgeClass='soon'; label = 'อีก ' + hw.d + ' วัน'; }
+      else { label = 'อีก ' + hw.d + ' วัน'; }
+      return '<div class="deadline-item">' +
+        '<div class="deadline-badge ' + badgeClass + '">' + label + '</div>' +
+        '<div class="deadline-main"><div class="t">' + hw.topic + '</div>' +
+        '<div class="s">' + (course ? course.name : '-') + ' • กำหนดส่ง ' + formatDate(hw.dueDate) + '</div></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  // ความคืบหน้ารายวิชา (จากหัวข้อที่ติ๊กใน Lesson Log)
+  const progBox = document.getElementById('courseProgressOverview');
+  if(courses.length === 0){
+    progBox.innerHTML = '<div class="empty-note">ยังไม่มีรายวิชาในระบบ</div>';
+  } else {
+    let rows = '';
+    courses.forEach(course => {
+      const topics = lessons.filter(l => l.courseId === course.id && l.topic !== '');
+      const pct = topics.length ? Math.round((topics.filter(l => l.isCompleted).length / topics.length) * 100) : 0;
+      rows += '<div class="progress-mini-row">' +
+        '<div class="progress-mini-label" title="' + course.name + '">' + course.name + '</div>' +
+        '<div class="progress-mini-track"><div class="progress-mini-fill" style="width:' + pct + '%;"></div></div>' +
+        '<div class="progress-mini-pct">' + pct + '%</div>' +
+        '</div>';
+    });
+    progBox.innerHTML = rows || '<div class="empty-note">ยังไม่มีข้อมูลความคืบหน้า</div>';
+  }
+}
+
+/* ==========================================================
+   5. Courses CRUD
+   ========================================================== */
+function saveCourse(){
+  const nameInput = document.getElementById('courseName');
+  const teacherInput = document.getElementById('teacherName');
+  const contactInput = document.getElementById('teacherContact');
+  const name = nameInput.value.trim(), teacher = teacherInput.value.trim(), contact = contactInput.value.trim();
+
+  if(!name || !teacher || !contact){ toast('กรุณากรอกข้อมูลให้ครบถ้วนทุกช่องครับ', 'err'); return; }
+
+  if(editingCourseId){
+    const index = courses.findIndex(c => c.id === editingCourseId);
+    if(index !== -1){
+      if(courses.some(c => c.name === name && c.id !== editingCourseId)){ toast('มีรายวิชานี้ในระบบแล้วครับ', 'err'); return; }
+      courses[index] = { ...courses[index], name, teacher, contact };
+    }
+    cancelEditCourse();
+    toast('อัปเดตข้อมูลวิชาเรียบร้อยแล้ว');
+  } else {
+    if(courses.some(c => c.name === name)){ toast('มีรายวิชานี้ในระบบแล้วครับ', 'err'); return; }
+    courses.push({ id: Date.now().toString(), name, teacher, contact });
+    nameInput.value=''; teacherInput.value=''; contactInput.value='';
+    toast('บันทึกวิชาใหม่เรียบร้อยแล้ว');
+  }
+  saveData(); renderAll();
+}
+
+function editCourse(id){
+  const course = courses.find(c => c.id === id);
+  if(course){
+    document.getElementById('courseName').value = course.name;
+    document.getElementById('teacherName').value = course.teacher;
+    document.getElementById('teacherContact').value = course.contact;
+    editingCourseId = id;
+    const btnSave = document.getElementById('btnSaveCourse');
+    btnSave.innerText = '🔄 อัปเดตวิชา';
+    btnSave.classList.add('btn-update-mode');
+    document.getElementById('btnCancelEditCourse').style.display = 'inline-flex';
+    document.getElementById('courseName').focus();
+  }
+}
+function cancelEditCourse(){
+  editingCourseId = null;
+  document.getElementById('courseName').value = '';
+  document.getElementById('teacherName').value = '';
+  document.getElementById('teacherContact').value = '';
+  const btnSave = document.getElementById('btnSaveCourse');
+  btnSave.innerText = '💾 บันทึกวิชา';
+  btnSave.classList.remove('btn-update-mode');
+  document.getElementById('btnCancelEditCourse').style.display = 'none';
+}
+function deleteCourse(id){
+  showConfirm('ข้อมูลประวัติการสอนและการบ้านของวิชานี้จะถูกลบทิ้งทั้งหมด และไม่สามารถกู้คืนได้', () => {
+    courses = courses.filter(c => c.id !== id);
+    lessons = lessons.filter(l => l.courseId !== id);
+    homeworks = homeworks.filter(h => h.courseId !== id);
+    if(editingCourseId === id) cancelEditCourse();
+    saveData(); renderAll();
+    toast('ลบรายวิชาเรียบร้อยแล้ว', 'warn');
+  }, '⚠️ ยืนยันการลบวิชานี้?');
+}
+
+function renderCourses(){
+  const tbody = document.getElementById('courseTableBody');
+  tbody.innerHTML = '';
+  if(courses.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-light);">ยังไม่มีข้อมูลรายวิชา</td></tr>';
+    return;
+  }
+  courses.forEach(course => {
+    const lessonCount = lessons.filter(l => l.courseId === course.id).length;
+    const hwCount = homeworks.filter(h => h.courseId === course.id).length;
+    tbody.innerHTML += '<tr>' +
+      '<td><strong>' + course.name + '</strong></td>' +
+      '<td>' + course.teacher + '</td>' +
+      '<td>' + course.contact + '</td>' +
+      '<td>' + lessonCount + ' คาบ</td>' +
+      '<td>' + hwCount + ' ชิ้น</td>' +
+      '<td><div class="action-group">' +
+        '<button class="btn-icon edit" title="แก้ไข" onclick="editCourse(\'' + course.id + '\')">✏️</button>' +
+        '<button class="btn-icon del" title="ลบ" onclick="deleteCourse(\'' + course.id + '\')">🗑</button>' +
+      '</div></td></tr>';
+  });
+}
+
+function updateAllCourseDropdowns(){
+  const ddLesson = document.getElementById('lessonCourse');
+  const ddHw = document.getElementById('homeworkCourse');
+  const ddFilter = document.getElementById('filterCourse');
+  const vLesson = ddLesson.value, vHw = ddHw.value, vFilter = ddFilter.value;
+
+  ddLesson.innerHTML = '<option value="">-- เลือกรหัส/ชื่อวิชา --</option>';
+  ddHw.innerHTML = '<option value="">-- เลือกรหัส/ชื่อวิชา --</option>';
+  ddFilter.innerHTML = '<option value="all">-- ดูทุกวิชา --</option>';
+
+  courses.forEach(course => {
+    const opt = '<option value="' + course.id + '">' + course.name + '</option>';
+    ddLesson.innerHTML += opt; ddHw.innerHTML += opt; ddFilter.innerHTML += opt;
+  });
+  if(courses.some(c => c.id === vLesson)) ddLesson.value = vLesson;
+  if(courses.some(c => c.id === vHw)) ddHw.value = vHw;
+  if(courses.some(c => c.id === vFilter)) ddFilter.value = vFilter;
+}
+
+/* ==========================================================
+   6. Lesson log
+   ========================================================== */
+function addLesson(){
+  const courseId = document.getElementById('lessonCourse').value;
+  const dateInput = document.getElementById('lessonDate').value;
+  const summary = document.getElementById('lessonSummary').value.trim();
+  const topic = document.getElementById('lessonTopic').value.trim();
+
+  if(!courseId || !dateInput || !summary){ toast('กรุณาเลือกวิชา วันที่ และกรอกสรุปเนื้อหาครับ', 'err'); return; }
+
+  lessons.push({ id: Date.now(), courseId, date: dateInput, summary, topic, isCompleted: false });
+  document.getElementById('lessonDate').value = '';
+  document.getElementById('lessonSummary').value = '';
+  document.getElementById('lessonTopic').value = '';
+  saveData(); renderLessons(); renderCourses(); renderDashboardExtras();
+  toast('บันทึกคาบเรียนเรียบร้อยแล้ว');
+}
+
+function toggleTopicStatus(lessonId){
+  const lesson = lessons.find(l => l.id === lessonId);
+  if(lesson){ lesson.isCompleted = !lesson.isCompleted; saveData(); renderLessons(); renderDashboardExtras(); }
+}
+
+function deleteLesson(lessonId){
+  showConfirm('บันทึกการสอนคาบนี้จะถูกลบออกจากประวัติการสอนอย่างถาวร', () => {
+    lessons = lessons.filter(l => l.id !== lessonId);
+    saveData(); renderLessons(); renderCourses(); renderDashboardExtras();
+    toast('ลบบันทึกการสอนแล้ว', 'warn');
+  }, 'ยืนยันการลบบันทึกการสอน');
+}
+
+function renderLessons(){
+  const container = document.getElementById('lessonHistoryContainer');
+  container.innerHTML = '';
+  if(lessons.length === 0){ container.innerHTML = '<div class="empty-note">ยังไม่มีบันทึกการสอน</div>'; return; }
+
+  const grouped = {};
+  lessons.forEach(l => { (grouped[l.courseId] = grouped[l.courseId] || []).push(l); });
+
+  for(const courseId in grouped){
+    grouped[courseId].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const course = courses.find(c => c.id === courseId);
+    const courseName = course ? course.name : 'วิชาที่ถูกลบไปแล้ว';
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'lesson-group';
+
+    const topics = grouped[courseId].filter(l => l.topic !== '');
+    let progressHTML = '';
+    if(topics.length > 0){
+      const pct = Math.round((topics.filter(l => l.isCompleted).length / topics.length) * 100);
+      progressHTML = '<div class="progress-container"><div class="progress-bar" style="width:' + pct + '%;">' + pct + '%</div></div>';
+    }
+    groupDiv.innerHTML = '<h4>วิชา: ' + courseName + '</h4>' + progressHTML;
+
+    grouped[courseId].forEach(l => {
+      let topicHTML = '';
+      if(l.topic){
+        const checked = l.isCompleted ? 'checked' : '';
+        const compClass = l.isCompleted ? 'topic-completed' : '';
+        topicHTML = '<label class="topic-check-container ' + compClass + '">' +
+          '<input type="checkbox" ' + checked + ' onchange="toggleTopicStatus(' + l.id + ')">' +
+          '<span class="lesson-topic-badge">หัวข้อ: ' + l.topic + '</span></label>';
+      }
+      groupDiv.innerHTML += '<div class="lesson-item">' +
+        '<button class="btn-delete-lesson no-print" title="ลบบันทึก" onclick="deleteLesson(' + l.id + ')">✖</button>' +
+        '<div class="lesson-date">📅 ' + formatDate(l.date) + '</div>' +
+        '<div class="lesson-summary">' + l.summary + '</div>' + topicHTML + '</div>';
+    });
+    container.appendChild(groupDiv);
+  }
+}
+
+/* ==========================================================
+   7. Homework CRUD
+   ========================================================== */
+function saveHomework(){
+  const courseId = document.getElementById('homeworkCourse').value;
+  const topic = document.getElementById('homeworkTopic').value.trim();
+  const dueDate = document.getElementById('homeworkDueDate').value;
+
+  if(!courseId || !topic || !dueDate){ toast('กรุณากรอกข้อมูลการสั่งงานให้ครบถ้วนครับ', 'err'); return; }
+
+  if(editingHomeworkId){
+    const idx = homeworks.findIndex(h => h.id === editingHomeworkId);
+    if(idx !== -1) homeworks[idx] = { ...homeworks[idx], courseId, topic, dueDate };
+    cancelEditHomework();
+    toast('อัปเดตงานเรียบร้อยแล้ว');
+  } else {
+    homeworks.push({ id: Date.now(), courseId, topic, dueDate, status: 'pending' });
+    document.getElementById('homeworkTopic').value = '';
+    document.getElementById('homeworkDueDate').value = '';
+    toast('สั่งงานใหม่เรียบร้อยแล้ว');
+  }
+  saveData(); renderHomeworks(); renderCourses(); renderDashboardExtras();
+  if(currentViewStudentId) renderStudentProfile(currentViewStudentId);
+}
+
+function editHomework(id){
+  const hw = homeworks.find(h => h.id === id);
+  if(hw){
+    document.getElementById('homeworkCourse').value = hw.courseId;
+    document.getElementById('homeworkTopic').value = hw.topic;
+    document.getElementById('homeworkDueDate').value = hw.dueDate;
+    editingHomeworkId = id;
+    const btnSave = document.getElementById('btnSaveHomework');
+    btnSave.innerText = '🔄 อัปเดตงาน';
+    btnSave.classList.add('btn-update-mode');
+    document.getElementById('btnCancelEditHomework').style.display = 'inline-flex';
+    document.getElementById('homeworkTopic').focus();
+  }
+}
+function cancelEditHomework(){
+  editingHomeworkId = null;
+  document.getElementById('homeworkCourse').value = '';
+  document.getElementById('homeworkTopic').value = '';
+  document.getElementById('homeworkDueDate').value = '';
+  const btnSave = document.getElementById('btnSaveHomework');
+  btnSave.innerText = '🚀 สั่งงาน';
+  btnSave.classList.remove('btn-update-mode');
+  document.getElementById('btnCancelEditHomework').style.display = 'none';
+}
+function toggleHomeworkStatus(id){
+  const hw = homeworks.find(h => h.id === id);
+  if(hw){ hw.status = hw.status === 'pending' ? 'completed' : 'pending'; saveData(); renderHomeworks(); renderDashboardExtras(); }
+}
+function deleteHomework(id){
+  showConfirm('ประวัติการส่งงานของนักเรียนในชิ้นงานนี้จะหายไปทั้งหมด และไม่สามารถกู้คืนได้', () => {
+    homeworks = homeworks.filter(h => h.id !== id);
+    for(let sId in studentSubmissions){ if(studentSubmissions[sId][id]) delete studentSubmissions[sId][id]; }
+    if(editingHomeworkId === id) cancelEditHomework();
+    saveData(); renderHomeworks(); renderCourses(); renderDashboardExtras();
+    if(currentViewStudentId) renderStudentProfile(currentViewStudentId);
+    toast('ลบงานเรียบร้อยแล้ว', 'warn');
+  }, 'ยืนยันการลบงานชิ้นนี้?');
+}
+
+function renderHomeworks(){
+  const tbody = document.getElementById('homeworkTableBody');
+  const filterValue = document.getElementById('filterCourse').value;
+  const searchValue = (document.getElementById('homeworkSearch').value || '').trim().toLowerCase();
+  tbody.innerHTML = '';
+
+  let filtered = filterValue === 'all' ? homeworks : homeworks.filter(hw => hw.courseId === filterValue);
+  if(searchValue) filtered = filtered.filter(hw => hw.topic.toLowerCase().includes(searchValue));
+  filtered = [...filtered].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  if(filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">ไม่พบข้อมูลการสั่งงาน</td></tr>'; return;
+  }
+
+  filtered.forEach(hw => {
+    const course = courses.find(c => c.id === hw.courseId);
+    const cName = course ? course.name : '-';
+    const overdue = hw.status === 'pending' && daysUntil(hw.dueDate) < 0;
+
+    const badge = hw.status === 'completed'
+      ? '<span class="status-badge status-completed">✓ เสร็จแล้ว</span>'
+      : overdue
+        ? '<span class="status-badge status-overdue">⏰ เลยกำหนด</span>'
+        : '<span class="status-badge status-pending">รอตรวจ</span>';
+    const actBtn = hw.status === 'completed'
+      ? '<button class="btn-status undo" onclick="toggleHomeworkStatus(' + hw.id + ')">ยกเลิก</button>'
+      : '<button class="btn-status done" onclick="toggleHomeworkStatus(' + hw.id + ')">ทำเสร็จ</button>';
+
+    tbody.innerHTML += '<tr>' +
+      '<td>' + cName + '</td>' +
+      '<td><strong>' + hw.topic + '</strong></td>' +
+      '<td>' + formatDate(hw.dueDate) + '</td>' +
+      '<td>' + badge + '</td>' +
+      '<td><div class="action-group">' + actBtn +
+        '<button class="btn-icon edit" onclick="editHomework(' + hw.id + ')">✏️</button>' +
+        '<button class="btn-icon del" onclick="deleteHomework(' + hw.id + ')">🗑</button>' +
+      '</div></td></tr>';
+  });
+}
+
+/* ==========================================================
+   8. Students CRUD
+   ========================================================== */
+function saveStudent(){
+  const code = document.getElementById('studentCode').value.trim();
+  const name = document.getElementById('studentName').value.trim();
+  if(!code || !name){ toast('กรุณากรอกรหัสและชื่อนักเรียน', 'err'); return; }
+
+  if(editingStudentId){
+    const idx = students.findIndex(s => s.id === editingStudentId);
+    if(idx !== -1){
+      if(students.some(s => s.code === code && s.id !== editingStudentId)){ toast('รหัสนักเรียนนี้มีในระบบแล้วครับ', 'err'); return; }
+      students[idx] = { ...students[idx], code, name };
+    }
+    cancelEditStudent();
+    toast('อัปเดตข้อมูลนักเรียนแล้ว');
+  } else {
+    if(students.some(s => s.code === code)){ toast('รหัสนักเรียนซ้ำในระบบ', 'err'); return; }
+    students.push({ id: Date.now(), code, name });
+    document.getElementById('studentCode').value = '';
+    document.getElementById('studentName').value = '';
+    toast('เพิ่มนักเรียนใหม่เรียบร้อยแล้ว');
+  }
+  saveData(); renderStudents();
+}
+
+function editStudent(id){
+  const st = students.find(s => s.id === id);
+  if(st){
+    document.getElementById('studentCode').value = st.code;
+    document.getElementById('studentName').value = st.name;
+    editingStudentId = id;
+    const btnSave = document.getElementById('btnSaveStudent');
+    btnSave.innerText = '🔄 อัปเดตข้อมูล';
+    btnSave.classList.add('btn-update-mode');
+    document.getElementById('btnCancelEditStudent').style.display = 'inline-flex';
+    document.getElementById('studentCode').focus();
+  }
+}
+function cancelEditStudent(){
+  editingStudentId = null;
+  document.getElementById('studentCode').value = '';
+  document.getElementById('studentName').value = '';
+  const btnSave = document.getElementById('btnSaveStudent');
+  btnSave.innerText = '💾 บันทึกนักเรียน';
+  btnSave.classList.remove('btn-update-mode');
+  document.getElementById('btnCancelEditStudent').style.display = 'none';
+}
+function deleteStudent(id){
+  showConfirm('ประวัติการส่งงานทั้งหมดของนักเรียนคนนี้จะหายไป และไม่สามารถกู้คืนได้', () => {
+    students = students.filter(s => s.id !== id);
+    if(studentSubmissions[id]) delete studentSubmissions[id];
+    if(editingStudentId === id) cancelEditStudent();
+    if(currentViewStudentId === id){
+      currentViewStudentId = null;
+      document.getElementById('profileStudentName').innerHTML = 'กรุณาเลือกนักเรียน';
+      document.getElementById('studentHomeworkTableBody').innerHTML = '<tr><td colspan="4" style="text-align:center;">เลือกรายชื่อเพื่อดูประวัติ</td></tr>';
+      setProfileRing(0);
+    }
+    saveData(); renderStudents();
+    toast('ลบนักเรียนเรียบร้อยแล้ว', 'warn');
+  }, 'ยืนยันการลบชื่อนักเรียนคนนี้?');
+}
+
+function studentCompletionPct(studentId){
+  if(homeworks.length === 0) return 0;
+  const done = homeworks.filter(hw => (studentSubmissions[studentId] && studentSubmissions[studentId][hw.id]) === 'completed').length;
+  return Math.round((done / homeworks.length) * 100);
+}
+
+function renderStudents(){
+  const tbody = document.getElementById('studentTableBody');
+  const search = (document.getElementById('studentSearch').value || '').trim().toLowerCase();
+  tbody.innerHTML = '';
+  let list = students;
+  if(search) list = list.filter(s => s.name.toLowerCase().includes(search) || s.code.toLowerCase().includes(search));
+
+  if(list.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">' + (students.length===0 ? 'ยังไม่มีรายชื่อนักเรียน' : 'ไม่พบนักเรียนที่ค้นหา') + '</td></tr>';
+    return;
+  }
+  list.forEach(st => {
+    const active = st.id === currentViewStudentId ? 'active-row' : '';
+    const pct = studentCompletionPct(st.id);
+    tbody.innerHTML += '<tr class="' + active + '">' +
+      '<td><strong>' + st.code + '</strong></td>' +
+      '<td>' + st.name + '</td>' +
+      '<td><div class="progress-mini-row" style="margin:0;"><div class="progress-mini-track" style="max-width:90px;"><div class="progress-mini-fill" style="width:' + pct + '%;"></div></div><div class="progress-mini-pct">' + pct + '%</div></div></td>' +
+      '<td><div class="action-group">' +
+        '<button class="btn-icon view" title="ดูงาน" onclick="viewStudentProfile(' + st.id + ')">📂</button>' +
+        '<button class="btn-icon edit" onclick="editStudent(' + st.id + ')">✏️</button>' +
+        '<button class="btn-icon del" onclick="deleteStudent(' + st.id + ')">🗑</button>' +
+      '</div></td></tr>';
+  });
+}
+
+function viewStudentProfile(id){
+  currentViewStudentId = id;
+  renderStudents();
+  renderStudentProfile(id);
+}
+
+function toggleStudentSubmission(studentId, hwId){
+  if(!studentSubmissions[studentId]) studentSubmissions[studentId] = {};
+  const curr = studentSubmissions[studentId][hwId] || 'pending';
+  studentSubmissions[studentId][hwId] = curr === 'pending' ? 'completed' : 'pending';
+  saveData(); renderStudentProfile(studentId); renderStudents();
+}
+
+function setProfileRing(pct){
+  const ring = document.getElementById('profileRing');
+  ring.style.setProperty('--pct', pct);
+  document.getElementById('profileRingPct').textContent = pct + '%';
+}
+
+function renderStudentProfile(studentId){
+  const st = students.find(s => s.id === studentId);
+  if(!st) return;
+
+  document.getElementById('profileStudentName').innerHTML = st.code + ' - ' + st.name;
+  setProfileRing(studentCompletionPct(studentId));
+
+  const tbody = document.getElementById('studentHomeworkTableBody');
+  tbody.innerHTML = '';
+  if(homeworks.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);">ยังไม่มีการสั่งงานในระบบ</td></tr>'; return;
+  }
+
+  const sorted = [...homeworks].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+  sorted.forEach(hw => {
+    const course = courses.find(c => c.id === hw.courseId);
+    const status = (studentSubmissions[studentId] && studentSubmissions[studentId][hw.id]) || 'pending';
+    const overdue = status === 'pending' && daysUntil(hw.dueDate) < 0;
+
+    const badge = status === 'completed'
+      ? '<span class="status-badge status-completed">✓ ส่งแล้ว</span>'
+      : overdue
+        ? '<span class="status-badge status-overdue">⏰ ค้างส่ง (เลยกำหนด)</span>'
+        : '<span class="status-badge status-pending">ค้างส่ง</span>';
+    const actBtn = status === 'completed'
+      ? '<button class="btn-status undo" onclick="toggleStudentSubmission(' + studentId + ', ' + hw.id + ')">สลับเป็นค้างส่ง</button>'
+      : '<button class="btn-status done" style="background-color:var(--gold);" onclick="toggleStudentSubmission(' + studentId + ', ' + hw.id + ')">ติ๊กส่งแล้ว</button>';
+
+    tbody.innerHTML += '<tr>' +
+      '<td>' + (course ? course.name : '-') + '</td>' +
+      '<td><div style="font-weight:600;">' + hw.topic + '</div><div style="font-size:.8rem;color:var(--text-light);">📅 ' + formatDate(hw.dueDate) + '</div></td>' +
+      '<td>' + badge + '</td>' +
+      '<td>' + actBtn + '</td></tr>';
+  });
+}
+
+function copyStudentSummary(){
+  if(!currentViewStudentId){ toast('กรุณาเลือกนักเรียนก่อน', 'err'); return; }
+  const st = students.find(s => s.id === currentViewStudentId);
+  if(!st) return;
+  const sorted = [...homeworks].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+  let lines = ['สรุปการส่งงาน: ' + st.code + ' - ' + st.name, 'ความคืบหน้ารวม: ' + studentCompletionPct(st.id) + '%', ''];
+  sorted.forEach(hw => {
+    const course = courses.find(c => c.id === hw.courseId);
+    const status = (studentSubmissions[st.id] && studentSubmissions[st.id][hw.id]) || 'pending';
+    const statusText = status === 'completed' ? 'ส่งแล้ว ✓' : (daysUntil(hw.dueDate) < 0 ? 'เลยกำหนดส่ง ⏰' : 'ยังไม่ส่ง');
+    lines.push('- [' + (course ? course.name : '-') + '] ' + hw.topic + ' (กำหนดส่ง ' + formatDate(hw.dueDate) + ') : ' + statusText);
+  });
+  const text = lines.join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => toast('คัดลอกสรุปเรียบร้อยแล้ว 📋')).catch(() => toast('คัดลอกไม่สำเร็จ', 'err'));
+  } else {
+    toast('เบราว์เซอร์นี้ไม่รองรับการคัดลอกอัตโนมัติ', 'err');
+  }
+}
+
+/* ==========================================================
+   9. Global search (courses / students / homework topics)
+   ========================================================== */
+function handleGlobalSearch(){
+  const q = document.getElementById('globalSearch').value.trim();
+  if(!q) return;
+  // sync ไปยังช่องค้นหาที่เกี่ยวข้องของแต่ละหน้า เพื่อผลลัพธ์ตรงกัน
+  document.getElementById('studentSearch').value = q;
+  document.getElementById('homeworkSearch').value = q;
+  renderStudents();
+  renderHomeworks();
+}
+
+/* ==========================================================
+   10. Backup / Restore / Clear
+   ========================================================== */
+async function exportBackup(){
+  const payload = { courses, lessons, homeworks, students, studentSubmissions, exportedAt: new Date().toISOString(), version: 1 };
+  const json = JSON.stringify(payload, null, 2);
+  const filename = 'teacher-ledger-backup-' + todayStr() + '.json';
+  try{
+    const downloads = (window.claude && typeof window.claude.use === 'function') ? await window.claude.use('downloads') : null;
+    if(downloads){
+      await downloads.save({ filename, data: json });
+      toast('บันทึกไฟล์สำรองข้อมูลเรียบร้อยแล้ว');
+      return;
+    }
+  }catch(err){
+    if(err && err.code === 'declined'){ return; }
+    // ถ้าใช้ capability ไม่ได้ ให้ fallback ไปวิธีดาวน์โหลดปกติด้านล่าง
+  }
+  try{
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('ดาวน์โหลดไฟล์สำรองข้อมูลเรียบร้อยแล้ว');
+  }catch(e){
+    toast('ไม่สามารถสำรองข้อมูลได้ในขณะนี้', 'err');
+  }
+}
+
+function importBackup(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      showConfirm('ข้อมูลปัจจุบันทั้งหมดจะถูกแทนที่ด้วยข้อมูลจากไฟล์นี้', () => {
+        courses = data.courses || [];
+        lessons = data.lessons || [];
+        homeworks = data.homeworks || [];
+        students = data.students || [];
+        studentSubmissions = data.studentSubmissions || {};
+        currentViewStudentId = null;
+        saveData(); renderAll();
+        toast('นำเข้าข้อมูลสำเร็จแล้ว 🎉');
+      }, '⚠️ ยืนยันการนำเข้าไฟล์สำรองข้อมูล?');
+    }catch(err){
+      toast('ไฟล์ไม่ถูกต้องหรือเสียหาย', 'err');
+    }
+    document.getElementById('importFileInput').value = '';
+  };
+  reader.readAsText(file);
+}
+
+function confirmClearAll(){
+  showConfirm('ข้อมูลวิชา การสอน การบ้าน และนักเรียนทั้งหมดจะถูกลบถาวรจากเบราว์เซอร์นี้', () => {
+    courses = []; lessons = []; homeworks = []; students = []; studentSubmissions = {};
+    currentViewStudentId = null; editingCourseId = null; editingHomeworkId = null; editingStudentId = null;
+    saveData(); renderAll();
+    toast('ล้างข้อมูลทั้งหมดเรียบร้อยแล้ว', 'warn');
+  }, '⚠️ ยืนยันการล้างข้อมูลทั้งหมด?');
+}
+</script>
+</body>
+</html>
